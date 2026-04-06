@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AS ENTERPRISES | V23</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        :root { 
+            --gold: #bf953f; 
+            --bg: #000; --text: #fff; --card: rgba(255,255,255,0.05); --border: rgba(191,149,63,0.3);
+        }
+        .light-mode { --bg: #f8f9fa; --text: #1a1a1a; --card: #ffffff; --border: #dee2e6; }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin:0; padding-bottom:100px; }
+        .luxury-font { font-family: 'Cinzel', serif; }
+        
+        .glass-panel { background: var(--card); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 20px; }
+        .btn-gold { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728); color: #000; font-weight: 800; border-radius: 12px; padding: 15px; width: 100%; border:none; cursor:pointer; }
+
+        .nav-bar { position: fixed; bottom: 15px; left: 15px; right: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; display: flex; justify-content: space-around; padding: 12px; z-index: 1000; backdrop-filter: blur(10px); }
+        
+        .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        input, select, textarea { background: var(--card) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 10px !important; padding: 12px !important; width: 100%; margin-bottom: 10px; outline: none; }
+
+        .filter-chip { padding: 8px 18px; border-radius: 12px; border: 1px solid var(--border); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+        .filter-chip.active { background: var(--gold); color: #000; border-color: transparent; }
+
+        /* Premium Cart Popup Animation */
+        .cart-popup { 
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); 
+            z-index: 99999; padding: 15px 30px; border-radius: 15px; 
+            background: rgba(34, 197, 94, 0.9); color: white;
+            font-weight: 800; font-size: 14px; letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .cart-popup.show { bottom: 100px; }
+
+        .status-popup { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); z-index: 99999; padding: 12px 25px; border-radius: 50px; font-weight: bold; font-size: 12px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body>
+
+    <div class="flex justify-between items-center p-5">
+        <h1 class="luxury-font text-xl text-yellow-600">AS ENTERPRISES</h1>
+        <button onclick="toggleTheme()" class="w-10 h-10 glass-panel flex items-center justify-center">🌓</button>
+    </div>
+
+    <div id="cartPop" class="cart-popup">
+        <span>🛍️</span> ITEM ADDED TO BAG!
+    </div>
+
+    <div id="pop" class="status-popup bg-yellow-500 text-black">SUCCESS! ✨</div>
+
+    <div id="homePage" class="page active">
+        <input type="text" id="srch" oninput="renderHome()" placeholder="🔍 Search clothes, shoes..." class="mb-5">
+        
+        <div class="flex gap-3 overflow-x-auto pb-4 mb-4 no-scrollbar">
+            <div class="filter-chip active" onclick="setCat('All', this)">All</div>
+            <div class="filter-chip" onclick="setCat('Nighty', this)">Nighty</div>
+            <div class="filter-chip" onclick="setCat('Jeans', this)">Jeans</div>
+            <div class="filter-chip" onclick="setCat('Tshirt', this)">T-shirt</div>
+            <div class="filter-chip" onclick="setCat('Shirt', this)">Shirt</div>
+            <div class="filter-chip" onclick="setCat('Saari', this)">Saari</div>
+            <div class="filter-chip" onclick="setCat('Suit', this)">Suit</div>
+            <div class="filter-chip" onclick="setCat('Shoes', this)">Shoes</div>
+        </div>
+
+        <div class="swiper mainSwiper mb-6 h-40 rounded-2xl overflow-hidden"><div class="swiper-wrapper" id="bList"></div></div>
+        <div id="sGrid" class="grid grid-cols-2 gap-4"></div>
+    </div>
+
+    <div id="cartPage" class="page">
+        <h2 class="luxury-font text-center text-xl mb-6">Shopping Bag</h2>
+        <div id="cartList" class="space-y-3 mb-6"></div>
+        <div id="cartTotalArea" class="glass-panel p-5 hidden">
+            <div class="flex justify-between mb-4 font-bold"><span>Total:</span><span id="finalPrice" class="text-yellow-600">₹0</span></div>
+            <button onclick="openCheckout()" class="btn-gold">PLACE ORDER</button>
+        </div>
+    </div>
+
+    <div id="adminPage" class="page">
+        <div id="aLogin" class="text-center pt-10"><input type="password" id="pin" placeholder="ENTER PIN" class="text-center"><button onclick="auth()" class="btn-gold mt-3">LOGIN</button></div>
+        <div id="aPanel" class="hidden">
+            <div class="glass-panel p-5 mb-5">
+                <input type="text" id="in" placeholder="Product Name">
+                <input type="number" id="ip" placeholder="Price ₹">
+                <select id="ic">
+                    <option>Nighty</option><option>Jeans</option><option>Tshirt</option>
+                    <option>Shirt</option><option>Saari</option><option>Suit</option>
+                    <option>Shoes</option>
+                </select>
+                <input type="text" id="il" placeholder="Photo Direct Link (i.ibb.co)">
+                <button onclick="save()" class="btn-gold mt-2">ADD PRODUCT</button>
+            </div>
+            <div id="adminItems" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <div id="pDet" class="fixed inset-0 bg-black/90 z-[5000] hidden p-6 flex flex-col items-center justify-center backdrop-blur-md">
+        <div class="glass-panel p-6 w-full max-w-sm relative">
+            <button onclick="closeP()" class="absolute top-4 right-4 text-2xl">×</button>
+            <img id="pImg" class="w-full aspect-square object-cover rounded-xl mb-4">
+            <h2 id="pTitle" class="luxury-font text-xl mb-2 uppercase"></h2>
+            <p id="pPrice" class="text-yellow-600 font-bold text-lg mb-4"></p>
+            <div id="pSizes" class="flex gap-2 mb-6"></div>
+            <button onclick="addToBag()" class="btn-gold">ADD TO BAG</button>
+        </div>
+    </div>
+
+    <div id="checkoutBox" class="fixed inset-0 bg-black/95 z-[6000] hidden p-8 flex flex-col justify-center">
+        <div class="glass-panel p-6">
+            <input type="text" id="custName" placeholder="Your Name">
+            <textarea id="custAddr" placeholder="Delivery Address" rows="4"></textarea>
+            <button onclick="sendOrder()" class="btn-gold mt-4">WHATSAPP ORDER</button>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="w-full mt-4 opacity-50">Cancel</button>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div onclick="showPage('homePage')">🏠</div>
+        <div onclick="showPage('cartPage')">🛍️</div>
+        <div onclick="showPage('adminPage')">⚙️</div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        let db = JSON.parse(localStorage.getItem('AS_DB')) || [];
+        let cart = JSON.parse(localStorage.getItem('AS_CART')) || [];
+        let curCat = "All", cur = null, curS = null;
+
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+        
+        function toast(msg) { 
+            const p = document.getElementById('pop'); 
+            p.innerText = msg; p.style.top = '20px'; 
+            setTimeout(() => p.style.top = '-100px', 2000); 
+        }
+
+        function cartToast() {
+            const p = document.getElementById('cartPop');
+            p.classList.add('show');
+            setTimeout(() => p.classList.remove('show'), 2500);
+        }
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'cartPage') renderBag();
+        }
+
+        function setCat(c, el) { 
+            curCat = c; 
+            document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active')); 
+            el.classList.add('active'); 
+            renderHome(); 
+        }
+
+        function save() {
+            const n = document.getElementById('in').value, p = document.getElementById('ip').value, c = document.getElementById('ic').value, l = document.getElementById('il').value;
+            if(n && p && l) {
+                db.push({ id: Date.now(), name: n, price: p, cat: c, img: l, sizes: ['S','M','L','XL'] });
+                localStorage.setItem('AS_DB', JSON.stringify(db));
+                toast("PRODUCT PUBLISHED! ✨"); renderHome();
+            }
+        }
+
+        function renderHome() {
+            const q = document.getElementById('srch').value.toLowerCase();
+            const f = db.filter(x => (curCat === 'All' || x.cat === curCat) && x.name.toLowerCase().includes(q));
+            document.getElementById('sGrid').innerHTML = f.map(x => `
+                <div class="glass-panel overflow-hidden" onclick="openP(${x.id})">
+                    <img src="${x.img}" class="w-full aspect-[4/5] object-cover">
+                    <div class="p-3 text-center text-[10px] font-bold uppercase">${x.name}<br><span class="text-yellow-600">₹${x.price}</span></div>
+                </div>`).join('');
+            
+            document.getElementById('bList').innerHTML = db.slice(-3).map(x => `<div class="swiper-slide"><img src="${x.img}" class="w-full h-full object-cover"></div>`).join('');
+            new Swiper(".mainSwiper", {autoplay:true, loop:true});
+            document.getElementById('adminItems').innerHTML = db.map(x => `<div class="glass-panel p-2 flex justify-between items-center text-xs"><span>${x.name}</span><button onclick="del(${x.id})" class="text-red-500">DEL</button></div>`).join('');
+        }
+
+        function openP(id) {
+            cur = db.find(x => x.id === id); curS = null;
+            document.getElementById('pImg').src = cur.img; document.getElementById('pTitle').innerText = cur.name; document.getElementById('pPrice').innerText = "₹" + cur.price;
+            document.getElementById('pSizes').innerHTML = cur.sizes.map(s => `<button onclick="curS='${s}';Array.from(this.parentElement.children).forEach(b=>b.style.background='none');this.style.background='#bf953f'" class="border border-yellow-600 p-2 rounded-lg text-xs w-10">${s}</button>`).join('');
+            document.getElementById('pDet').style.display = 'flex';
+        }
+        function closeP() { document.getElementById('pDet').style.display = 'none'; }
+
+        function addToBag() {
+            if(!curS) { toast("PLEASE SELECT SIZE! ⚠️"); return; }
+            cart.push({...cur, selS: curS, cartId: Date.now()});
+            localStorage.setItem('AS_CART', JSON.stringify(cart));
+            closeP(); 
+            cartToast(); // New Premium English Popup
+        }
+
+        function renderBag() {
+            const list = document.getElementById('cartList'), area = document.getElementById('cartTotalArea');
+            if(cart.length === 0) { list.innerHTML = "<p class='text-center opacity-40'>Bag is empty</p>"; area.style.display = 'none'; }
+            else {
+                area.style.display = 'block'; let total = 0;
+                list.innerHTML = cart.map(x => { total += parseInt(x.price); return `<div class="glass-panel p-4 flex justify-between items-center"><div><p class="font-bold text-sm uppercase">${x.name}</p><p class="text-xs text-yellow-600">${x.selS} | ₹${x.price}</p></div><button onclick="removeFromCart(${x.cartId})" class="text-red-500">❌</button></div>`; }).join('');
+                document.getElementById('finalPrice').innerText = "₹" + total;
+            }
+        }
+
+        function removeFromCart(cid) { cart = cart.filter(x => x.cartId !== cid); localStorage.setItem('AS_CART', JSON.stringify(cart)); renderBag(); toast("REMOVED! ❌"); }
+        function openCheckout() { document.getElementById('checkoutBox').style.display = 'flex'; }
+        function sendOrder() {
+            const name = document.getElementById('custName').value, addr = document.getElementById('custAddr').value;
+            if(!name || !addr) { toast("FILL INFO! ⚠️"); return; }
+            let bill = cart.map(x => `- ${x.name} (${x.selS})`).join('%0A');
+            window.open(`https://wa.me/919211698297?text=*NEW ORDER*%0A*Name:* ${name}%0A*Address:* ${addr}%0A*Items:*%0A${bill}%0A*Total:* ${document.getElementById('finalPrice').innerText}`);
+        }
+
+        function auth() { if(document.getElementById('pin').value === "9211") { document.getElementById('aLogin').classList.add('hidden'); document.getElementById('aPanel').classList.remove('hidden'); renderHome(); } }
+        function del(id) { db = db.filter(x => x.id !== id); localStorage.setItem('AS_DB', JSON.stringify(db)); renderHome(); }
+        window.onload = renderHome;
+    </script>
+</body>
+</html>
